@@ -54,3 +54,4 @@ scope on purpose, the same way the original single file did — `01-state.js`
 must load before anything that reads `db` or `currentUser`, etc. If you add
 a file, give it a number that reflects its dependencies and wire it into
 `index.html`.
+ update
