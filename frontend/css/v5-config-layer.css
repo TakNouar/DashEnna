@@ -1,0 +1,23 @@
+/* v5-config-layer.css
+ * V5 layer: data sync toolbar, permission matrix, status widgets
+ */
+
+/* ===== V5 DATA / PERMISSION / REFRESH LAYER ===== */
+.v5-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.v5-status{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--line);border-radius:20px;background:var(--panel-2);font:11px var(--font-mono);color:var(--muted)}
+.v5-status .v5-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(57,208,140,.55)}
+.v5-small-btn{padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:var(--panel-2);color:var(--text);font:11px var(--font-mono);cursor:pointer}
+.v5-small-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.v5-small-btn.primary{background:var(--cyan);color:#0A0F1A;border-color:var(--cyan);font-weight:700}
+.v5-import-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.v5-import-note{font-size:12px;color:var(--muted);line-height:1.55}
+.v5-file-input{width:100%;padding:10px;background:var(--panel);border:1px dashed var(--line);border-radius:8px;color:var(--text)}
+.v5-perm-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.v5-perm-table th,.v5-perm-table td{padding:8px 6px;border-bottom:1px solid rgba(32,48,74,.6);text-align:center}
+.v5-perm-table th:first-child,.v5-perm-table td:first-child{text-align:left}
+.v5-perm-table th{font:10px var(--font-mono);color:var(--muted-2);text-transform:uppercase}
+.v5-check{width:16px;height:16px;accent-color:var(--cyan);cursor:pointer}
+.v5-section-title{font-family:var(--font-display);font-size:13px;color:var(--cyan);margin:16px 0 9px}
+.v5-disabled{opacity:.42;pointer-events:none;filter:grayscale(.4)}
+.v5-readonly{opacity:.72}
+@media(max-width:900px){.v5-import-grid{grid-template-columns:1fr}}
