@@ -1,11 +1,15 @@
 const express = require('express');
 const { getDb, save, computeCnsStats } = require('../db/store');
 const { requireAuth, requirePage } = require('../middleware/auth');
+const { validateBody } = require('../middleware/validate');
+const { logCreateSchema } = require('../validation/schemas');
 
 function requireLogsRead(req, res, next) {
   if (req.user?.role === 'root') return next();
   const pages = req.user?.permissions?.pages || [];
-  if (!pages.length || pages.includes('daily_log') || pages.includes('cns') || pages.includes('overview')) return next();
+  if (!pages.length || pages.includes('daily_log') || pages.includes('cns') || pages.includes('overview')) {
+    return next();
+  }
   return res.status(403).json({ error: 'Accès refusé aux logs' });
 }
 
@@ -25,15 +29,16 @@ router.get('/cns-stats', requireAuth, requireLogsRead, (req, res) => {
   res.json(computeCnsStats(db.daily_logs));
 });
 
-router.post('/', requireAuth, requirePage('daily_log'), (req, res) => {
-  const { date, time, site, equip, status, start_time, end_time, why } = req.body || {};
-  if (!date || !time || !site || !equip || !status) {
-    return res.status(400).json({ error: 'Champs obligatoires manquants' });
-  }
+router.post('/', requireAuth, requirePage('daily_log'), validateBody(logCreateSchema), (req, res) => {
+  const { date, time, site, equip, status, start_time, end_time, why } = req.body;
   const db = getDb();
   const row = {
     id: db.nextLogId++,
-    date, time, site, equip, status,
+    date,
+    time,
+    site,
+    equip,
+    status,
     start_time: start_time || null,
     end_time: end_time || null,
     why: why || '',

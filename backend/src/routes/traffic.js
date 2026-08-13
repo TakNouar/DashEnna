@@ -1,6 +1,8 @@
 const express = require('express');
 const { getDb, save, DEFAULT_TRAFFIC } = require('../db/store');
 const { requireAuth, requireRoot } = require('../middleware/auth');
+const { validateBody } = require('../middleware/validate');
+const { trafficImportSchema } = require('../validation/schemas');
 
 const router = express.Router();
 
@@ -16,13 +18,8 @@ router.get('/', requireAuth, (req, res) => {
   });
 });
 
-router.post('/import', requireAuth, requireRoot, (req, res) => {
-  const csv = (req.body && (req.body.csv || req.body.text)) || '';
-  if (!csv || typeof csv !== 'string') {
-    return res.status(400).json({
-      error: 'Corps attendu: { "csv": "month,label,movements\\n2025-09,Sep,19800\\n..." }',
-    });
-  }
+router.post('/import', requireAuth, requireRoot, validateBody(trafficImportSchema), (req, res) => {
+  const csv = req.body.csv || req.body.text || '';
 
   const lines = csv.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const rows = [];
@@ -39,7 +36,7 @@ router.post('/import', requireAuth, requireRoot, (req, res) => {
       label = month.slice(5) || month;
     }
     const n = Number(String(movements).replace(/\s/g, ''));
-    if (!month || Number.isNaN(n)) continue;
+    if (!month || Number.isNaN(n) || n < 0) continue;
     rows.push({ month, label: label || month, movements: n });
   }
 
