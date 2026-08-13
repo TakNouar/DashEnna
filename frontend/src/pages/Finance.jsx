@@ -1,19 +1,24 @@
+import { useI18n } from '../i18n/I18nContext';
+
 export default function Finance() {
+  const { t } = useI18n();
   return (
-    <>
+    <div className="panel">
+      <h3>{t('financeTitle')}</h3>
+      <div className="sub">{t('financeSub')}</div>
       <div className="kpi-row">
-        <div className="kpi"><div className="l">CA réalisé (YTD)</div><div className="v">—</div><div className="d flat">Données internes</div></div>
-        <div className="kpi"><div className="l">CA vs budget</div><div className="v">—</div><div className="d flat">À connecter</div></div>
-        <div className="kpi"><div className="l">Charges</div><div className="v">—</div><div className="d flat">À connecter</div></div>
-        <div className="kpi"><div className="l">Résultat net</div><div className="v">—</div><div className="d flat">À connecter</div></div>
+        <div className="kpi">
+          <div className="l">CA</div>
+          <div className="v">—</div>
+          <div className="d flat">{t('comingSoon')}</div>
+        </div>
+        <div className="kpi">
+          <div className="l">Résultat</div>
+          <div className="v">—</div>
+          <div className="d flat">{t('comingSoon')}</div>
+        </div>
       </div>
-      <div className="panel">
-        <h3>Finances</h3>
-        <p className="empty">
-          Les indicateurs financiers opérationnels ne sont pas publics.
-          Cette page est prête à recevoir des données via l'API une fois les sources ENNA branchées.
-        </p>
-      </div>
-    </>
+      <p className="empty">{t('illustrativeFinance')}</p>
+    </div>
   );
 }

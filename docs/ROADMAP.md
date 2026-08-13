@@ -1,25 +1,17 @@
 # Roadmap
 
-## Done — Phase 0–2.2
+## Done — Phase 0–2.4
 
-- [x] Official 36 aerodromes + ICAO legitimacy
-- [x] React + Express + JWT + JSON store
-- [x] CNS from daily logs + traffic CSV import
-- [x] RBAC (UI + API)
-- [x] Login/logout without page refresh
-
-## Done — Phase 2.3 (i18n)
-
-- [x] FR / AR / EN dictionaries
-- [x] Language switcher (login + topbar)
-- [x] `dir=rtl` for Arabic
-- [x] Tabs, topbar, login, overview, CNS, traffic translated
-- [x] Preference stored in `localStorage` (`dashenna_lang`)
+- [x] Legitimate 36 aerodromes + React/Express stack
+- [x] Live CNS from logs + traffic CSV import
+- [x] RBAC UI + API
+- [x] Login/logout without refresh
+- [x] i18n FR / AR / EN (all main pages)
+- [x] Map locked to Algeria bounds (no pan outside the country)
 
 ## Next
 
-- [ ] Finish i18n on remaining pages (map, daily logs, accounts, finance, HR)
-- [ ] Production hardening (password rotation; checklist in docs/PRODUCTION.md)
-- [ ] Optional Postgres for multi-instance
+- [ ] Production hardening (password rotation, JWT secret, TLS)
+- [ ] Optional Postgres
 - [ ] SSE / WebSocket live push
-- [ ] Finance / HR official feeds only when available
+- [ ] Finance / HR official feeds when available
