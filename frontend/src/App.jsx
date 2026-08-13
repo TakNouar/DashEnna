@@ -12,11 +12,15 @@ import Traffic from './pages/Traffic';
 import Cns from './pages/Cns';
 import Finance from './pages/Finance';
 import Hr from './pages/Hr';
+import Incidents from './pages/Incidents';
+import Equipment from './pages/Equipment';
 import { useI18n } from './i18n/I18nContext';
 
 const TABS = [
   { id: 'overview', label: "Vue d'ensemble" },
   { id: 'traffic', label: 'Trafic & Sécurité' },
+  { id: 'incidents', label: 'Incidents' },
+  { id: 'equipment', label: 'Équipements' },
   { id: 'cns', label: 'CNS & Disponibilité' },
   { id: 'finance', label: 'Finances' },
   { id: 'hr', label: 'RH & Effectifs' },
@@ -31,7 +35,7 @@ function canAccess(user, pageId) {
   if (pageId === 'accounts') return false;
   const pages = user.permissions?.pages;
   if (!pages || !pages.length) {
-    return ['overview', 'cns', 'map_dsa', 'daily_log'].includes(pageId);
+    return ['overview', 'cns', 'map_dsa', 'daily_log', 'incidents', 'equipment'].includes(pageId);
   }
   return pages.includes(pageId);
 }
@@ -45,6 +49,7 @@ export default function App() {
   const [logs, setLogs] = useState([]);
   const [traffic, setTraffic] = useState(null);
   const [cnsStats, setCnsStats] = useState(null);
+  const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -56,6 +61,7 @@ export default function App() {
     setLogs([]);
     setTraffic(null);
     setCnsStats(null);
+    setEquipment([]);
     setError('');
     setTab('overview');
   }, []);
@@ -65,25 +71,24 @@ export default function App() {
     if (user?.must_change_password) return;
     setLoading(true);
     try {
-      const [apts, st, lg, tr, cns] = await Promise.all([
+      const [apts, st, lg, tr, cns, eq] = await Promise.all([
         api('/airports'),
         api('/airports/stats'),
         api('/logs'),
         api('/traffic'),
         api('/logs/cns-stats'),
+        api('/equipment'),
       ]);
       setAirports(apts);
       setStats(st);
       setLogs(lg);
       setTraffic(tr);
       setCnsStats(cns);
+      setEquipment(eq);
       setError('');
     } catch (e) {
-      if (e.status === 401) {
-        clearSession();
-      } else {
-        setError(e.message);
-      }
+      if (e.status === 401) clearSession();
+      else setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -98,9 +103,9 @@ export default function App() {
 
   const visibleTabs = useMemo(
     () =>
-      TABS.filter((tab) => canAccess(user, tab.id)).map((tab) => ({
-        ...tab,
-        label: t(`tab_${tab.id}`) || tab.label,
+      TABS.filter((tabItem) => canAccess(user, tabItem.id)).map((tabItem) => ({
+        ...tabItem,
+        label: t(`tab_${tabItem.id}`) || tabItem.label,
       })),
     [user, t]
   );
@@ -116,7 +121,7 @@ export default function App() {
     const data = await apiLogin(username, password);
     setUser(data.user);
     if (!data.user.must_change_password) {
-      const first = TABS.find((t) => canAccess(data.user, t.id));
+      const first = TABS.find((x) => canAccess(data.user, x.id));
       setTab(first?.id || 'overview');
     }
     setError('');
@@ -126,25 +131,17 @@ export default function App() {
     const next = { ...user, must_change_password: false };
     setUser(next);
     localStorage.setItem('dashenna_user', JSON.stringify(next));
-    const first = TABS.find((t) => canAccess(next, t.id));
+    const first = TABS.find((x) => canAccess(next, x.id));
     setTab(first?.id || 'overview');
   };
 
-  const handleLogout = () => {
-    clearSession();
-  };
+  const handleLogout = () => clearSession();
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
+  if (!user) return <Login onLogin={handleLogin} />;
 
   if (user.must_change_password) {
     return (
-      <ForceChangePassword
-        user={user}
-        onDone={handlePasswordChanged}
-        onLogout={handleLogout}
-      />
+      <ForceChangePassword user={user} onDone={handlePasswordChanged} onLogout={handleLogout} />
     );
   }
 
@@ -164,16 +161,20 @@ export default function App() {
         {tab === 'traffic' && canAccess(user, 'traffic') && (
           <Traffic traffic={traffic} user={user} onChange={refresh} />
         )}
-        {tab === 'cns' && canAccess(user, 'cns') && (
-          <Cns logs={logs} cnsStats={cnsStats} />
+        {tab === 'incidents' && canAccess(user, 'incidents') && (
+          <Incidents airports={airports} equipment={equipment} user={user} onChange={refresh} />
         )}
+        {tab === 'equipment' && canAccess(user, 'equipment') && (
+          <Equipment airports={airports} user={user} onChange={refresh} />
+        )}
+        {tab === 'cns' && canAccess(user, 'cns') && <Cns logs={logs} cnsStats={cnsStats} />}
         {tab === 'finance' && canAccess(user, 'finance') && <Finance />}
         {tab === 'hr' && canAccess(user, 'hr') && <Hr />}
         {tab === 'map_dsa' && canAccess(user, 'map_dsa') && (
           <MapPage airports={airports} stats={stats} />
         )}
         {tab === 'daily_log' && canAccess(user, 'daily_log') && (
-          <DailyLogs logs={logs} airports={airports} user={user} onChange={refresh} />
+          <DailyLogs logs={logs} airports={airports} equipment={equipment} user={user} onChange={refresh} />
         )}
         {tab === 'accounts' && canAccess(user, 'accounts') && (
           <Accounts user={user} onChange={refresh} />
