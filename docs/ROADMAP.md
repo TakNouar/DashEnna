@@ -1,32 +1,25 @@
 # Roadmap
 
-## Done — Phase 0 + 1
+## Done — Phase 0–2.2
 
-- [x] Official 36 aerodromes + correct ICAO codes
-- [x] React frontend (Vite) + Express JSON backend
-- [x] bcrypt + JWT auth
-- [x] Daily logs, map, accounts
-- [x] Legacy HTML removed
+- [x] Official 36 aerodromes + ICAO legitimacy
+- [x] React + Express + JWT + JSON store
+- [x] CNS from daily logs + traffic CSV import
+- [x] RBAC (UI + API)
+- [x] Login/logout without page refresh
 
-## Done — Phase 2
+## Done — Phase 2.3 (i18n)
 
-- [x] CNS from daily logs (`GET /api/logs/cns-stats`)
-- [x] Traffic series + CSV import (`GET/POST /api/traffic`)
-- [x] Overview charts wired to live series / CNS
-- [x] Env JWT (`JWT_SECRET`, required in production)
-- [x] RBAC page permissions (UI + API)
-- [x] Login/logout without full page refresh (hooks order fixed)
-
-## Done — Phase 2.2
-
-- [x] Instant session switch on login/logout
-- [x] API route page checks (logs write, airports, cns-stats)
-- [x] Refresh data after daily log submit (`onChange` → refresh)
+- [x] FR / AR / EN dictionaries
+- [x] Language switcher (login + topbar)
+- [x] `dir=rtl` for Arabic
+- [x] Tabs, topbar, login, overview, CNS, traffic translated
+- [x] Preference stored in `localStorage` (`dashenna_lang`)
 
 ## Next
 
-- [ ] Production hardening: rotate default passwords, deploy checklist
-- [ ] i18n FR / AR / EN
-- [ ] Optional Postgres
-- [ ] Real-time push (SSE) instead of 2 min poll
-- [ ] Finance / HR only with official internal feeds
+- [ ] Finish i18n on remaining pages (map, daily logs, accounts, finance, HR)
+- [ ] Production hardening (password rotation; checklist in docs/PRODUCTION.md)
+- [ ] Optional Postgres for multi-instance
+- [ ] SSE / WebSocket live push
+- [ ] Finance / HR official feeds only when available

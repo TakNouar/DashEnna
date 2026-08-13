@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { useI18n } from '../i18n/I18nContext';
+import LangSwitch from './LangSwitch';
 
 export default function Login({ onLogin }) {
+  const { t } = useI18n();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,7 +16,7 @@ export default function Login({ onLogin }) {
     try {
       await onLogin(username.trim(), password);
     } catch (err) {
-      setError(err.message || 'Échec de connexion');
+      setError(err.message || t('loginFail'));
     } finally {
       setBusy(false);
     }
@@ -22,21 +25,24 @@ export default function Login({ onLogin }) {
   return (
     <div className="login-overlay">
       <div className="login-card">
-        <h2>Espace Sécurisé ENNA</h2>
-        <p>Connectez-vous pour accéder au tableau de bord</p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <LangSwitch />
+        </div>
+        <h2>{t('loginTitle')}</h2>
+        <p>{t('loginSub')}</p>
         <form className="login-form" onSubmit={submit}>
           <div>
-            <label>Identifiant (DSA / Site ou root)</label>
+            <label>{t('username')}</label>
             <input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Ex: root ou DSA_Alger"
+              placeholder="root / DSA_Alger"
               required
               autoComplete="username"
             />
           </div>
           <div>
-            <label>Mot de passe</label>
+            <label>{t('password')}</label>
             <input
               type="password"
               value={password}
@@ -47,12 +53,12 @@ export default function Login({ onLogin }) {
             />
           </div>
           <button type="submit" className="login-btn" disabled={busy}>
-            {busy ? 'Connexion…' : 'Se Connecter'}
+            {busy ? t('loggingIn') : t('loginBtn')}
           </button>
           {error && <div className="login-error">{error}</div>}
         </form>
         <p style={{ marginTop: 16, fontSize: '0.72rem', color: 'var(--muted)', textAlign: 'center' }}>
-          Démo: root / admin123
+          {t('demoHint')}
         </p>
       </div>
     </div>
