@@ -1,52 +1,38 @@
-# Data sources & legitimacy (Phase 0)
+# Data sources & legitimacy
 
 ## Official aerodrome count
 
 ENNA homepage (2026): **12 internationaux + 24 nationaux = 36**.
 
-Page [Aérodromes gérés](https://enna.dz/fr/a-propos/aerodrome-geres/) lists the same 36 names.
-
 ## ICAO codes
 
-Verified against AIS Algeria AIP (sia-enna.dz), Part 3 AD:
+Verified against AIS Algeria AIP. Loader: `backend/src/data/airports.js`.
 
-| Name | Correct OACI | Old (wrong) |
-|------|--------------|-------------|
-| Ghardaïa – Noumérat | **DAUG** | DAAG (duplicate of Alger) |
-| El Goléa | **DAUE** | DAAE (which is Béjaïa) |
-| Tébessa | **DABS** | DAAF |
-
-Full list of 36 codes:
-- `backend/src/data/airports_p1.json` (18)
-- `backend/src/data/airports_p2.json` (18)
-- `backend/src/data/airports.js` (loader that merges both)
-
-## DSA regions (dashboard model)
-
-Mapped for operational grouping (not an official org chart):
-
-- DSA Alger (Centre)
-- DSA Oran (Ouest) / DSA Oran (Béchar)
-- DSA Constantine (Est)
-- DSA Annaba (Est)
-- DSA Sud (Hassi-Messaoud) / (Ouargla) / (Adrar) / (Tamanrasset)
-
-Real ENNA structure also includes DDNA, DENA, DTNA, DRFC, DJRH, CQRENA, FIU, and regional divisions (Algiers, Constantine, Hassi-Messaoud, Oran, Annaba — AEFMP).
-
-## Public traffic figures
-
-From enna.dz homepage:
+## Public traffic figures (enna.dz)
 
 - Mouvements aérodromes **2025**: 253 340
 - Survols **2025**: 276 899
 
-Per-airport monthly `traffic` values in the DB are **illustrative** averages for map/table UX only.
+## Real (API-backed) as of Phase 1
 
-## What is NOT real
+| Domain | Source | Notes |
+|--------|--------|-------|
+| Aerodromes | Static JSON from official list | 36 sites |
+| Daily equipment logs | `POST /api/logs` → `db.daily_logs` | CNS derived from these |
+| CNS availability | Computed from latest log status | Not external feed |
+| Traffic series | `db.traffic_series` + CSV import | Public annual totals from enna.dz |
+| **Incidents** | `db.incidents` via `/api/incidents` | **Real module — starts empty, no demo rows in UI** |
+| **Equipment inventory** | `db.equipment` via `/api/equipment` | Seeded structured inventory; editable by root |
 
-- Live CNS availability percentages
-- Finance KPIs (CA, résultat)
-- Incident journal entries (demo)
-- Daily log seed rows (demo)
+## Still illustrative
 
-These are labelled in the UI and must be replaced by internal ENNA data feeds for production use.
+| Domain | Status | Decision |
+|--------|--------|----------|
+| Finance KPIs | Labeled placeholder pages | **Kept visible through Phase 4** (Master Plan §4.3) |
+| HR / effectifs | Labeled placeholder (~3 300 agents) | Same as Finance |
+| Per-airport map `traffic` field | Illustrative monthly average | Map UX only |
+
+## Seed notes
+
+- Daily log seeds exist so CNS charts are non-empty on first install.
+- Incidents array is **empty** by default — the Incidents UI never shows hardcoded rows.

@@ -23,6 +23,8 @@ const airportRoutes = require('./routes/airports');
 const logRoutes = require('./routes/logs');
 const userRoutes = require('./routes/users');
 const trafficRoutes = require('./routes/traffic');
+const incidentRoutes = require('./routes/incidents');
+const equipmentRoutes = require('./routes/equipment');
 
 const PORT = process.env.PORT || 4000;
 const isProd = process.env.NODE_ENV === 'production';
@@ -30,14 +32,9 @@ load();
 
 const app = express();
 
-// Explicit CORS allowlist (charter §5.3). ALLOWED_ORIGINS = comma-separated.
-// Dev fallback: http://localhost:5173 only. Production requires ALLOWED_ORIGINS.
 function buildCorsOrigin() {
   const raw = process.env.ALLOWED_ORIGINS || '';
-  const list = raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const list = raw.split(',').map((s) => s.trim()).filter(Boolean);
   if (list.length) {
     return (origin, cb) => {
       if (!origin || list.includes(origin)) return cb(null, true);
@@ -51,20 +48,15 @@ function buildCorsOrigin() {
   return [];
 }
 
-app.use(
-  cors({
-    origin: buildCorsOrigin(),
-    credentials: true,
-  })
-);
+app.use(cors({ origin: buildCorsOrigin(), credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
     service: 'DashEnna API',
-    version: '2.5.0',
-    phase: '2.5 — zod validation, login rate-limit, CORS allowlist, must_change_password',
+    version: '2.6.0',
+    phase: '3.0 — Phase 1: incidents + equipment',
   });
 });
 
@@ -73,6 +65,8 @@ app.use('/api/airports', airportRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/traffic', trafficRoutes);
+app.use('/api/incidents', incidentRoutes);
+app.use('/api/equipment', equipmentRoutes);
 
 const clientDist = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(clientDist));
