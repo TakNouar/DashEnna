@@ -82,7 +82,7 @@ export const fr = {
   "importOk": "Import OK",
   "lang": "Langue",
   "mapTitle": "Cartographie Aérodromes & Réseau DSA",
-  "mapSub": "Vert = H24 · Ambre = H12 · Focus Algérie uniquement",
+  "mapSub": "Vert = H24 · Ambre = H12 · Focus Afrique du Nord",
   "aptTotal": "Aérodromes Total",
   "nationalNetwork": "Réseau National ENNA",
   "internationals": "Internationaux",
@@ -125,5 +125,11 @@ export const fr = {
   "financeSub": "Illustratif — en attente de flux internes ENNA",
   "hrTitle": "RH & Effectifs",
   "hrSub": "Illustratif — ~3 300 agents (chiffre public ENNA)",
-  "comingSoon": "Données non branchées"
+  "comingSoon": "Données non branchées",
+  "aptTableTitle": "Aérodromes & Rattachement DSA",
+  "aptTableSub": "Cliquer sur une ligne pour la fiche — Source: enna.dz + AIP",
+  "aptTableNote": "* Trafic = moyenne mensuelle illustrative. Codes OACI vérifiés AIP Algeria.",
+  "frequencies": "Fréquences",
+  "navigation": "Navigation",
+  "fuel": "Carburant"
 };
