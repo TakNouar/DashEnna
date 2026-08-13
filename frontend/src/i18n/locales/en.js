@@ -82,7 +82,7 @@ export const en = {
   "importOk": "Import OK",
   "lang": "Language",
   "mapTitle": "Aerodromes map & DSA network",
-  "mapSub": "Green = H24 · Amber = H12 · Algeria only",
+  "mapSub": "Green = H24 · Amber = H12 · North Africa focus",
   "aptTotal": "Total aerodromes",
   "nationalNetwork": "ENNA national network",
   "internationals": "International",
@@ -125,5 +125,11 @@ export const en = {
   "financeSub": "Illustrative — awaiting internal ENNA feeds",
   "hrTitle": "HR & Staffing",
   "hrSub": "Illustrative — ~3,300 agents (ENNA public figure)",
-  "comingSoon": "Data not connected"
+  "comingSoon": "Data not connected",
+  "aptTableTitle": "Aerodromes & DSA assignment",
+  "aptTableSub": "Click a row for details — Source: enna.dz + AIP",
+  "aptTableNote": "* Traffic = illustrative monthly average. ICAO codes verified AIP Algeria.",
+  "frequencies": "Frequencies",
+  "navigation": "Navigation",
+  "fuel": "Fuel"
 };
