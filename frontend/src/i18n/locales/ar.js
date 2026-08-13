@@ -82,7 +82,7 @@ export const ar = {
   "importOk": "تم الاستيراد",
   "lang": "اللغة",
   "mapTitle": "خريطة المطارات وشبكة DSA",
-  "mapSub": "أخضر = H24 · عنبري = H12 · الجزائر فقط",
+  "mapSub": "أخضر = H24 · عنبري = H12 · تركيز شمال أفريقيا",
   "aptTotal": "إجمالي المطارات",
   "nationalNetwork": "الشبكة الوطنية ENNA",
   "internationals": "دولية",
@@ -125,5 +125,11 @@ export const ar = {
   "financeSub": "توضيحي — بانتظار بيانات ENNA الداخلية",
   "hrTitle": "الموارد البشرية",
   "hrSub": "توضيحي — ~3300 عون (رقم عام ENNA)",
-  "comingSoon": "البيانات غير متصلة"
+  "comingSoon": "البيانات غير متصلة",
+  "aptTableTitle": "المطارات وارتباط DSA",
+  "aptTableSub": "انقر على صف للتفاصيل — المصدر: enna.dz + AIP",
+  "aptTableNote": "* الحركة = متوسط شهري تقديري. رموز OACI وفق AIP Algeria.",
+  "frequencies": "الترددات",
+  "navigation": "الملاحة",
+  "fuel": "الوقود"
 };
