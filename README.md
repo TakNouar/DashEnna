@@ -1,57 +1,46 @@
-# DashEnna
+# DashEnna v2
 
-Executive dashboard for ENNA (Établissement National de la Navigation Aérienne) —
-network-wide traffic, CNS/DSA equipment availability, finance, HR, and aerodrome
-tracking across Algeria's aviation infrastructure.
+Executive dashboard for **ENNA** (Établissement National de la Navigation Aérienne) — React frontend + Node/Express + JSON file store backend.
 
-## Current status
+## What changed (Phase 0 + 1 migration)
 
-**Phase 1 (this commit): frontend reorganized, no behavior changes.**
+- **Phase 0 — Data legitimacy**
+  - Full official **36 aerodromes** (12 international + 24 national)
+  - Correct ICAO codes from AIS Algeria AIP (fixed Ghardaïa `DAUG`, El Goléa `DAUE`, Tébessa `DABS`)
+  - DSA region assignment aligned with real regional structure
+  - Public 2025 traffic figures from enna.dz (253 340 movements, 276 899 overflights)
+  - Clear labelling of illustrative vs official data
 
-The dashboard was a single 1,657-line HTML file with all CSS and JS inlined.
-It has been split into a proper `frontend/` project — same UI, same features,
-same bugs (see `docs/KNOWN_ISSUES.md`) — just organized so it's possible to work
-on it. Nothing was rewritten or fixed in this pass on purpose, so the diff is
-reviewable and low-risk.
+- **Phase 1 — Architecture**
+  - Frontend migrated from plain HTML/JS → **React (Vite)**
+  - Backend: **Node + Express + JSON file store** (pure JS, no native deps)
+  - Real auth: **bcrypt** password hashing + **JWT** sessions (no more Base64)
+  - Permissions and account management enforced server-side
+  - Daily logs, airports, users served by REST API
+  - Leaflet map with all 36 markers
 
-There is **no real backend yet**. All data still lives in the browser's
-`localStorage`, seeded from hardcoded defaults in `frontend/js/01-state.js`.
-That's the next phase — see `docs/ROADMAP.md`.
+## Quick start
 
-## Structure
-
+### Backend
+```bash
+cd backend
+npm install
+npm run dev
+# → http://localhost:4000
 ```
-dashenna/
-├── frontend/
-│   ├── index.html          # shell: markup only, loads css/ and js/
-│   ├── css/                # split by concern (variables, layout, components, ...)
-│   └── js/                 # split by concern, numbered for load order
-├── backend/                # placeholder — Phase 2, see ROADMAP.md
-└── docs/
-    ├── KNOWN_ISSUES.md      # bugs and gaps found during the reorg, not yet fixed
-    └── ROADMAP.md            # path to a real client-server app
-```
+Default login: **root / admin123**
 
-## Running it locally
-
-Static files only, no build step:
-
+### Frontend
 ```bash
 cd frontend
-python3 -m http.server 8000
-# open http://localhost:8000
+npm install
+npm run dev
+# → http://localhost:5173  (proxies /api → :4000)
 ```
 
-Login as `root` / `admin123` (default seed account — see
-`docs/KNOWN_ISSUES.md` for why this needs to change before this ever
-touches real data).
+## Data sources
+- Aerodrome list: enna.dz – Aérodromes gérés
+- ICAO codes: AIS Algeria AIP (sia-enna.dz)
+- Traffic 2025: ENNA homepage
 
-## Load order matters
-
-`frontend/js/*.js` are loaded as plain `<script>` tags (no bundler, no
-modules) in the numbered order set in `index.html`. They share one global
-scope on purpose, the same way the original single file did — `01-state.js`
-must load before anything that reads `db` or `currentUser`, etc. If you add
-a file, give it a number that reflects its dependencies and wire it into
-`index.html`.
- update
+Change JWT_SECRET and default passwords before production use.
