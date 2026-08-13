@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { login as apiLogin, logout as apiLogout, getStoredUser, api } from './api';
 import Login from './components/Login';
+import ForceChangePassword from './components/ForceChangePassword';
 import Topbar from './components/Topbar';
 import Tabs from './components/Tabs';
 import Overview from './pages/Overview';
@@ -61,6 +62,7 @@ export default function App() {
 
   const refresh = useCallback(async () => {
     if (!getStoredUser() && !user) return;
+    if (user?.must_change_password) return;
     setLoading(true);
     try {
       const [apts, st, lg, tr, cns] = await Promise.all([
@@ -88,7 +90,7 @@ export default function App() {
   }, [user, clearSession]);
 
   useEffect(() => {
-    if (!user) return undefined;
+    if (!user || user.must_change_password) return undefined;
     refresh();
     const id = setInterval(refresh, 120000);
     return () => clearInterval(id);
@@ -104,7 +106,7 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.must_change_password) return;
     if (!canAccess(user, tab) && visibleTabs.length) {
       setTab(visibleTabs[0].id);
     }
@@ -113,9 +115,19 @@ export default function App() {
   const handleLogin = async (username, password) => {
     const data = await apiLogin(username, password);
     setUser(data.user);
-    const first = TABS.find((t) => canAccess(data.user, t.id));
-    setTab(first?.id || 'overview');
+    if (!data.user.must_change_password) {
+      const first = TABS.find((t) => canAccess(data.user, t.id));
+      setTab(first?.id || 'overview');
+    }
     setError('');
+  };
+
+  const handlePasswordChanged = () => {
+    const next = { ...user, must_change_password: false };
+    setUser(next);
+    localStorage.setItem('dashenna_user', JSON.stringify(next));
+    const first = TABS.find((t) => canAccess(next, t.id));
+    setTab(first?.id || 'overview');
   };
 
   const handleLogout = () => {
@@ -124,6 +136,16 @@ export default function App() {
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
+  }
+
+  if (user.must_change_password) {
+    return (
+      <ForceChangePassword
+        user={user}
+        onDone={handlePasswordChanged}
+        onLogout={handleLogout}
+      />
+    );
   }
 
   return (
