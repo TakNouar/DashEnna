@@ -1,4 +1,7 @@
+import { useI18n } from '../i18n/I18nContext';
+
 export default function Cns({ logs, cnsStats }) {
+  const { t } = useI18n();
   const gauges = cnsStats?.gauges || [
     { label: 'Radar', val: null },
     { label: 'VOR/DME', val: null },
@@ -24,30 +27,26 @@ export default function Cns({ logs, cnsStats }) {
               {g.val != null ? `${g.val}%` : '—'}
             </div>
             <div className="d flat">
-              {g.sample
-                ? `${g.sample} rapport(s) · source: logs DSA`
-                : 'Pas encore de log pour cette famille'}
+              {g.sample ? `${g.sample} ${t('reportsCount')}` : t('noLogFamily')}
             </div>
           </div>
         ))}
         {cnsStats?.overall != null && (
           <div className="kpi">
-            <div className="l">Disponibilité globale CNS</div>
+            <div className="l">{t('globalCns')}</div>
             <div className="v" style={{ color: color(cnsStats.overall) }}>{cnsStats.overall}%</div>
-            <div className="d flat">{cnsStats.total_reports} rapports au total</div>
+            <div className="d flat">{cnsStats.total_reports} {t('totalReports')}</div>
           </div>
         )}
       </div>
       <div className="panel">
-        <h3>Derniers rapports équipements (DSA)</h3>
-        <div className="sub">
-          Les % ci-dessus sont calculés à partir du dernier statut connu par site+équipement
-          (ON=100%, Dégradé=50%, OFF=0%).
-        </div>
+        <h3>{t('lastReports')}</h3>
+        <div className="sub">{t('cnsExplain')}</div>
         <table className="status-table">
           <thead>
             <tr>
-              <th>Date</th><th>Site</th><th>Équipement</th><th>Statut</th><th>Motif</th><th>Auteur</th>
+              <th>{t('date')}</th><th>{t('site')}</th><th>{t('equipment')}</th>
+              <th>{t('status')}</th><th>{t('reason')}</th><th>{t('author')}</th>
             </tr>
           </thead>
           <tbody>
@@ -66,7 +65,7 @@ export default function Cns({ logs, cnsStats }) {
               </tr>
             ))}
             {!logs?.length && (
-              <tr><td colSpan={6} className="empty">Aucun rapport — saisissez-en dans Rapport Quotidien DSA</td></tr>
+              <tr><td colSpan={6} className="empty">{t('noReports')}</td></tr>
             )}
           </tbody>
         </table>

@@ -11,6 +11,7 @@ import Traffic from './pages/Traffic';
 import Cns from './pages/Cns';
 import Finance from './pages/Finance';
 import Hr from './pages/Hr';
+import { useI18n } from './i18n/I18nContext';
 
 const TABS = [
   { id: 'overview', label: "Vue d'ensemble" },
@@ -35,6 +36,7 @@ function canAccess(user, pageId) {
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [user, setUser] = useState(() => getStoredUser());
   const [tab, setTab] = useState('overview');
   const [airports, setAirports] = useState([]);
@@ -93,8 +95,12 @@ export default function App() {
   }, [user, refresh]);
 
   const visibleTabs = useMemo(
-    () => TABS.filter((t) => canAccess(user, t.id)),
-    [user]
+    () =>
+      TABS.filter((tab) => canAccess(user, tab.id)).map((tab) => ({
+        ...tab,
+        label: t(`tab_${tab.id}`) || tab.label,
+      })),
+    [user, t]
   );
 
   useEffect(() => {
@@ -152,10 +158,12 @@ export default function App() {
         )}
       </main>
       <footer>
-        <span>ENNA — Tableau de bord exécutif · v2.2</span>
+        <span>{t('footer')}</span>
         <span>
-          {stats ? `${stats.total} aérodromes · ${stats.intl} internationaux · ${stats.ntl} nationaux` : '…'}
-          {' · '}CNS: {cnsStats?.overall != null ? `${cnsStats.overall}%` : '—'}
+          {stats
+            ? `${stats.total} ${t('aerodromes')} · ${stats.intl} ${t('intl')} · ${stats.ntl} ${t('ntl')}`
+            : '…'}
+          {' · '}{t('cnsLabel')}: {cnsStats?.overall != null ? `${cnsStats.overall}%` : '—'}
         </span>
       </footer>
     </div>
