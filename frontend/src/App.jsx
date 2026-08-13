@@ -14,14 +14,25 @@ import Hr from './pages/Hr';
 
 const TABS = [
   { id: 'overview', label: "Vue d'ensemble" },
-  { id: 'traffic', label: 'Trafic & Sécurité' },
-  { id: 'cns', label: 'CNS & Disponibilité' },
+  { id: 'traffic', label: 'Trafic & Securite' },
+  { id: 'cns', label: 'CNS & Disponibilite' },
   { id: 'finance', label: 'Finances' },
   { id: 'hr', label: 'RH & Effectifs' },
-  { id: 'map_dsa', label: 'Cartes DSA & Aérodromes' },
+  { id: 'map_dsa', label: 'Cartes DSA & Aerodromes' },
   { id: 'daily_log', label: 'Rapport Quotidien DSA' },
   { id: 'accounts', label: 'Gestion des Comptes', rootOnly: true },
 ];
+
+function canAccess(user, pageId) {
+  if (!user) return false;
+  if (user.role === 'root') return true;
+  if (pageId === 'accounts') return false;
+  const pages = user.permissions?.pages;
+  if (!pages || !pages.length) {
+    return ['overview', 'cns', 'map_dsa', 'daily_log'].includes(pageId);
+  }
+  return pages.includes(pageId);
+}
 
 export default function App() {
   const [user, setUser] = useState(getStoredUser());
@@ -29,6 +40,8 @@ export default function App() {
   const [airports, setAirports] = useState([]);
   const [stats, setStats] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [traffic, setTraffic] = useState(null);
+  const [cnsStats, setCnsStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,14 +49,18 @@ export default function App() {
     if (!user) return;
     setLoading(true);
     try {
-      const [apts, st, lg] = await Promise.all([
+      const [apts, st, lg, tr, cns] = await Promise.all([
         api('/airports'),
         api('/airports/stats'),
         api('/logs'),
+        api('/traffic'),
+        api('/logs/cns-stats'),
       ]);
       setAirports(apts);
       setStats(st);
       setLogs(lg);
+      setTraffic(tr);
+      setCnsStats(cns);
       setError('');
     } catch (e) {
       if (e.status === 401) {
@@ -60,14 +77,15 @@ export default function App() {
   useEffect(() => {
     refresh();
     if (!user) return undefined;
-    const id = setInterval(refresh, 240000);
+    const id = setInterval(refresh, 120000);
     return () => clearInterval(id);
   }, [user, refresh]);
 
   const handleLogin = async (username, password) => {
     const data = await apiLogin(username, password);
     setUser(data.user);
-    setTab('overview');
+    const first = TABS.find((t) => canAccess(data.user, t.id));
+    setTab(first?.id || 'overview');
   };
 
   const handleLogout = () => {
@@ -75,13 +93,21 @@ export default function App() {
     setUser(null);
     setAirports([]);
     setLogs([]);
+    setTraffic(null);
+    setCnsStats(null);
   };
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
   }
 
-  const visibleTabs = TABS.filter((t) => !t.rootOnly || user.role === 'root');
+  const visibleTabs = TABS.filter((t) => canAccess(user, t.id));
+
+  useEffect(() => {
+    if (user && !canAccess(user, tab) && visibleTabs.length) {
+      setTab(visibleTabs[0].id);
+    }
+  }, [user, tab, visibleTabs.length]);
 
   return (
     <div className="app">
@@ -93,9 +119,9 @@ export default function App() {
         </div>
       )}
       <main className="page">
-        {tab === 'overview' && <Overview stats={stats} airports={airports} />}
-        {tab === 'traffic' && <Traffic />}
-        {tab === 'cns' && <Cns logs={logs} airports={airports} />}
+        {tab === 'overview' && <Overview stats={stats} traffic={traffic} cnsStats={cnsStats} />}
+        {tab === 'traffic' && <Traffic traffic={traffic} user={user} onChange={refresh} />}
+        {tab === 'cns' && <Cns logs={logs} cnsStats={cnsStats} />}
         {tab === 'finance' && <Finance />}
         {tab === 'hr' && <Hr />}
         {tab === 'map_dsa' && <MapPage airports={airports} stats={stats} />}
@@ -107,10 +133,10 @@ export default function App() {
         )}
       </main>
       <footer>
-        <span>ENNA — Tableau de bord exécutif · v2.0 · React + Express</span>
+        <span>ENNA — Tableau de bord executif · v2.1 · React + Express</span>
         <span>
-          {stats ? `${stats.total} aérodromes · ${stats.intl} internationaux · ${stats.ntl} nationaux` : '…'}
-          {' · '}Données: enna.dz + AIS Algeria AIP
+          {stats ? `${stats.total} aerodromes · ${stats.intl} internationaux · ${stats.ntl} nationaux` : '...'}
+          {' · '}CNS: {cnsStats?.overall != null ? `${cnsStats.overall}%` : '—'}
         </span>
       </footer>
     </div>
