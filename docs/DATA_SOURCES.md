@@ -16,7 +16,10 @@ Verified against AIS Algeria AIP (sia-enna.dz), Part 3 AD:
 | El Goléa | **DAUE** | DAAE (which is Béjaïa) |
 | Tébessa | **DABS** | DAAF |
 
-Full list of 36 codes is in `backend/src/data/airports.js`.
+Full list of 36 codes:
+- `backend/src/data/airports_p1.json` (18)
+- `backend/src/data/airports_p2.json` (18)
+- `backend/src/data/airports.js` (loader that merges both)
 
 ## DSA regions (dashboard model)
 
