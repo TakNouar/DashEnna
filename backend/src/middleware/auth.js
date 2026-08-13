@@ -13,7 +13,7 @@ if (!isProd && !process.env.JWT_SECRET) {
   console.warn('[auth] Using default JWT_SECRET (dev only). Set JWT_SECRET in .env for production.');
 }
 
-const DEFAULT_DSA_PAGES = ['overview', 'cns', 'map_dsa', 'daily_log'];
+const DEFAULT_DSA_PAGES = ['overview', 'cns', 'map_dsa', 'daily_log', 'incidents', 'equipment'];
 
 function signToken(user) {
   return jwt.sign(
