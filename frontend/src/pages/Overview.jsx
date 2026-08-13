@@ -9,34 +9,36 @@ Chart.register(
   DoughnutController, ArcElement, BarController, BarElement, Legend, Tooltip
 );
 
-const months = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aout'];
-const trafficData = [19800, 20100, 21500, 22000, 23200, 24100, 24800, 25500, 26200, 26800, 27400, 27940];
-
-export default function Overview({ stats }) {
+export default function Overview({ stats, traffic, cnsStats }) {
   const trafficRef = useRef(null);
   const revenueRef = useRef(null);
   const hrRef = useRef(null);
   const cnsRef = useRef(null);
   const charts = useRef([]);
 
+  const series = traffic?.series || [];
+  const labels = series.map((r) => r.label || r.month);
+  const movements = series.map((r) => Number(r.movements) || 0);
+  const cnsLabels = (cnsStats?.gauges || []).map((g) => g.label);
+  const cnsVals = (cnsStats?.gauges || []).map((g) => (g.val != null ? g.val : 0));
+
   useEffect(() => {
     charts.current.forEach((c) => c.destroy());
     charts.current = [];
-
     const common = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { labels: { color: '#8b9bb4', boxWidth: 12, font: { size: 11 } } } },
     };
 
-    if (trafficRef.current) {
+    if (trafficRef.current && labels.length) {
       charts.current.push(new Chart(trafficRef.current, {
         type: 'line',
         data: {
-          labels: months,
+          labels,
           datasets: [{
             label: 'Mouvements',
-            data: trafficData,
+            data: movements,
             borderColor: '#4fe0e8',
             backgroundColor: 'rgba(79,224,232,0.15)',
             fill: true,
@@ -92,15 +94,15 @@ export default function Overview({ stats }) {
       }));
     }
 
-    if (cnsRef.current) {
+    if (cnsRef.current && cnsLabels.length) {
       charts.current.push(new Chart(cnsRef.current, {
         type: 'bar',
         data: {
-          labels: ['Radar', 'VOR/DME', 'ILS', 'VHF'],
+          labels: cnsLabels,
           datasets: [{
             label: '%',
-            data: [99.1, 98.4, 97.6, 99.5],
-            backgroundColor: ['#39d08c', '#4fe0e8', '#f5a623', '#39d08c'],
+            data: cnsVals,
+            backgroundColor: cnsVals.map((v) => (v >= 90 ? '#39d08c' : v >= 50 ? '#f5a623' : '#ff7675')),
             borderRadius: 4,
           }],
         },
@@ -109,7 +111,7 @@ export default function Overview({ stats }) {
           indexAxis: 'y',
           plugins: { legend: { display: false } },
           scales: {
-            x: { min: 90, max: 100, ticks: { color: '#8b9bb4' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            x: { min: 0, max: 100, ticks: { color: '#8b9bb4' }, grid: { color: 'rgba(255,255,255,0.04)' } },
             y: { ticks: { color: '#8b9bb4' }, grid: { display: false } },
           },
         },
@@ -120,49 +122,84 @@ export default function Overview({ stats }) {
       charts.current.forEach((c) => c.destroy());
       charts.current = [];
     };
-  }, []);
+  }, [labels.join(','), movements.join(','), cnsLabels.join(','), cnsVals.join(',')]);
+
+  const overall = cnsStats?.overall;
 
   return (
     <>
       <div className="hero">
         <div className="radar-center">
           <div>
-            <div className="num">94.2</div>
-            <div className="lbl">Indice global reseau</div>
+            <div className="num">{overall != null ? overall : '—'}</div>
+            <div className="lbl">CNS (logs DSA)</div>
           </div>
         </div>
         <div className="hero-text">
           <h2>Performance globale du reseau ENNA</h2>
           <p>
-            Indice composite (illustratif) - securite trafic, disponibilite CNS, finances, RH.
-            Reseau officiel: {stats?.total ?? '36'} aerodromes ({stats?.intl ?? 12} internationaux).
+            Indice CNS derive des rapports quotidiens DSA.
+            Reseau: {stats?.total ?? '36'} aerodromes ({stats?.intl ?? 12} internationaux).
           </p>
           <div>
-            <div className="hb-row"><span className="name">Securite / Trafic</span><div className="hb-track"><div className="hb-fill" style={{ width: '96%' }} /></div><span className="hb-val">96%</span></div>
-            <div className="hb-row"><span className="name">Disponibilite CNS</span><div className="hb-track"><div className="hb-fill" style={{ width: '98%' }} /></div><span className="hb-val">98%</span></div>
-            <div className="hb-row"><span className="name">Finances</span><div className="hb-track"><div className="hb-fill" style={{ width: '89%' }} /></div><span className="hb-val">89%</span></div>
-            <div className="hb-row"><span className="name">RH</span><div className="hb-track"><div className="hb-fill" style={{ width: '93%' }} /></div><span className="hb-val">93%</span></div>
+            <div className="hb-row">
+              <span className="name">CNS (logs)</span>
+              <div className="hb-track">
+                <div className="hb-fill" style={{ width: `${overall != null ? overall : 0}%` }} />
+              </div>
+              <span className="hb-val">{overall != null ? `${overall}%` : '—'}</span>
+            </div>
+            <div className="hb-row">
+              <span className="name">H24 / total</span>
+              <div className="hb-track">
+                <div className="hb-fill" style={{ width: stats?.total ? `${(stats.h24 / stats.total) * 100}%` : '0%' }} />
+              </div>
+              <span className="hb-val">{stats ? `${stats.h24}/${stats.total}` : '—'}</span>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="kpi-row">
-        <div className="kpi"><div className="l">Aerodromes (reseau ENNA)</div><div className="v">{stats?.total ?? '-'}</div><div className="d flat">{stats ? `${stats.intl} INTL - ${stats.ntl} NTL` : ''}</div></div>
-        <div className="kpi"><div className="l">Regime H24</div><div className="v" style={{ color: 'var(--green)' }}>{stats?.h24 ?? '-'}</div><div className="d up">Service continu</div></div>
-        <div className="kpi"><div className="l">Regime H12</div><div className="v" style={{ color: 'var(--amber)' }}>{stats?.h12 ?? '-'}</div><div className="d flat">Service diurne</div></div>
-        <div className="kpi"><div className="l">Mouvements aerodromes 2025</div><div className="v">253 340</div><div className="d flat">Source: enna.dz</div></div>
-        <div className="kpi"><div className="l">Survols 2025</div><div className="v">276 899</div><div className="d flat">Source: enna.dz</div></div>
+        <div className="kpi">
+          <div className="l">Aerodromes</div>
+          <div className="v">{stats?.total ?? '—'}</div>
+          <div className="d flat">{stats ? `${stats.intl} INTL · ${stats.ntl} NTL` : ''}</div>
+        </div>
+        <div className="kpi">
+          <div className="l">Regime H24</div>
+          <div className="v" style={{ color: 'var(--green)' }}>{stats?.h24 ?? '—'}</div>
+          <div className="d up">Service continu</div>
+        </div>
+        <div className="kpi">
+          <div className="l">Mouvements 2025 (officiel)</div>
+          <div className="v">253 340</div>
+          <div className="d flat">enna.dz</div>
+        </div>
+        <div className="kpi">
+          <div className="l">Survols 2025</div>
+          <div className="v">276 899</div>
+          <div className="d flat">enna.dz</div>
+        </div>
+        <div className="kpi">
+          <div className="l">Rapports DSA</div>
+          <div className="v">{cnsStats?.total_reports ?? '—'}</div>
+          <div className="d flat">alimentent le CNS</div>
+        </div>
       </div>
 
       <div className="grid-2">
         <div className="panel">
-          <h3>Trafic mensuel - mouvements reseau</h3>
-          <div className="sub">Tendance illustrative (totaux 2025 officiels)</div>
+          <h3>Trafic mensuel — mouvements reseau</h3>
+          <div className="sub">
+            Serie serveur (modifiable via Trafic → import CSV)
+            {series.length ? ` · ${series.length} mois` : ' · aucune serie'}
+          </div>
           <div className="chart-wrap"><canvas ref={trafficRef} /></div>
         </div>
         <div className="panel">
           <h3>Repartition CA par redevance</h3>
-          <div className="sub">Donnees illustratives - annee en cours</div>
+          <div className="sub">Illustratif — en attente de flux finance ENNA</div>
           <div className="chart-wrap"><canvas ref={revenueRef} /></div>
         </div>
       </div>
@@ -170,24 +207,32 @@ export default function Overview({ stats }) {
       <div className="grid-3">
         <div className="panel">
           <h3>Alertes prioritaires</h3>
-          <div className="sub">Points d'attention DG (demo)</div>
+          <div className="sub">Demo / points d&apos;attention</div>
           <table className="status-table">
             <tbody>
-              <tr><td>Radar Alger - cycle maintenance</td><td><span className="pill warn"><span className="dot" />A surveiller</span></td></tr>
-              <tr><td>Absenteisme controleurs - Oran</td><td><span className="pill warn"><span className="dot" />A surveiller</span></td></tr>
-              <tr><td>Resultat net vs budget</td><td><span className="pill ok"><span className="dot" />Conforme</span></td></tr>
-              <tr><td>Incidents securite (mois)</td><td><span className="pill ok"><span className="dot" />0 majeur</span></td></tr>
+              <tr>
+                <td>CNS global (logs)</td>
+                <td>
+                  <span className={`pill ${overall == null ? 'warn' : overall >= 90 ? 'ok' : overall >= 50 ? 'warn' : 'crit'}`}>
+                    <span className="dot" />{overall != null ? `${overall}%` : 'N/A'}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>Finance (interne)</td>
+                <td><span className="pill warn"><span className="dot" />Non branche</span></td>
+              </tr>
             </tbody>
           </table>
         </div>
         <div className="panel">
           <h3>Effectif par pole</h3>
-          <div className="sub">Repartition illustrative (~3 300 agents publies ENNA)</div>
+          <div className="sub">Illustratif (~3 300 agents publies ENNA)</div>
           <div className="chart-wrap"><canvas ref={hrRef} /></div>
         </div>
         <div className="panel">
-          <h3>Disponibilite par systeme CNS</h3>
-          <div className="sub">Moyenne reseau (illustrative)</div>
+          <h3>Disponibilite CNS (logs)</h3>
+          <div className="sub">Calculee depuis les rapports quotidiens</div>
           <div className="chart-wrap"><canvas ref={cnsRef} /></div>
         </div>
       </div>
