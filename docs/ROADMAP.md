@@ -1,19 +1,21 @@
 # Roadmap
 
-Source of truth for "what's next" is Section 5 of `docs/DashEnna_Development_Charter.md`.
+**What to build:** `docs/ENNA_ERP_Master_Plan.md` (active build plan).
+**How to build:** `docs/DashEnna_Development_Charter.md` (process + audit).
 
-## Done — Immediate (Section 5 items 1–4)
+## Phase 0 — Done (commit ~96ce06d)
 
-- [x] **1. Zod validation** on POST/PUT bodies in `auth`, `users`, `logs`, `traffic` (`backend/src/validation/schemas.js` + `middleware/validate.js`)
-- [x] **2. Rate limit** on `POST /api/auth/login` — 10 attempts / 15 min / IP (`express-rate-limit` in `routes/auth.js`)
-- [x] **3. CORS allowlist** via `ALLOWED_ORIGINS` env (`index.js`); documented in `.env.example` and `PRODUCTION.md`
-- [x] **4. Force password change** — `must_change_password` on seeded users; login flags it; frontend blocks tabs until `POST /auth/change-password` clears it
+- [x] Dashboard MVP (React + Express + JSON)
+- [x] Security hygiene: zod, login rate-limit, CORS allowlist, must_change_password
 
-## Near-term (Section 5)
+## Phase 1 — MVP completion (next)
 
-- [ ] 5. Incidents module (daily_logs pattern)
-- [ ] 6. Equipment inventory table
+- [ ] 4.1 Incidents module (API + UI, no demo rows)
+- [ ] 4.2 Equipment inventory (API + UI + log dropdown)
+- [ ] 4.3 Finance/HR status decision documented
+- [ ] 4.3 Auth/RBAC unit tests
+- [ ] DATA_SOURCES + this ROADMAP updated on completion
 
-## Deferred (Section 7 decision required)
+## Phase 2+ (gated — do not start early)
 
-- [ ] PostgreSQL, KPI engine, reports, Windows client, Excel import
+See Master Plan Sections 5–9: PostgreSQL → Core ERP → KPIs → Hardening → Windows client.

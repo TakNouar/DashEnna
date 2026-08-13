@@ -1,12 +1,14 @@
 # DashEnna — Development Charter & Standing Audit Prompt
 
-**Version 1.0 — established 2026-08-13, against commit e9b1cf3**
+**Version 1.1 — established 2026-08-13; updated with ERP path decision**
 
 This document has two jobs:
 
-1. It is the governing spec for how DashEnna gets built from here — what "done" means, what's non-negotiable, what order things happen in.
+1. It is the governing spec for **how** DashEnna gets built — what "done" means, what's non-negotiable, audit process.
 
-2. It is a standing prompt you can paste to any AI to get the same strict, code-verified audit process applied consistently.
+2. It is a standing prompt you can paste to any AI for code-verified audits.
+
+**What** gets built is defined in `docs/ENNA_ERP_Master_Plan.md` (active as of Decision Log 2026-08-13).
 
 Nothing in here overrides reality. If the repo contradicts this document, the repo wins and this document gets updated — never the other way around.
 
@@ -22,18 +24,17 @@ Concretely, an auditor must:
 - Flag any gap between what a commit message / doc says and what the diff actually contains.
 - Never round up. A half-implemented feature is not "mostly done" — state the specific missing piece.
 
-## 2. Project identity (locked — do not scope-creep silently)
+## 2. Project identity
 
-DashEnna is, right now, an **internal executive dashboard**, not an ERP:
+**Current product:** internal executive dashboard (MVP complete at Phase 0).
 
-- React (Vite) frontend + Node/Express backend + JSON file persistence
-- Auth: bcrypt + JWT, role-based (root / dsa, extensible via per-user page permissions)
-- Domain: 36 ENNA aerodromes, daily equipment logs, CNS availability computed from those logs, traffic figures
-- Explicitly NOT (yet): PostgreSQL, a Windows client, incident/maintenance/KPI/reporting modules, Excel import, multi-role hierarchy (DG/CNS/Viewer)
+**Authorized path (Decision Log 2026-08-13):** extend toward ENNA ERP per `docs/ENNA_ERP_Master_Plan.md`, phase-gated. Phase 1 (incidents + equipment) stays on the JSON store; PostgreSQL begins only at Phase 2.
 
-The V2–V17 "ERP handover" document is treated as an aspirational appendix, not a specification. Nothing in it is "in progress" unless it is separately, explicitly added to Section 5 (Roadmap) below with real repo evidence.
+- Stack (Phase 0–1): React (Vite) + Node/Express + JSON file persistence
+- Auth: bcrypt + JWT, root / dsa (expand roles in Phase 3)
+- Domain now: 36 ENNA aerodromes, daily logs, CNS, traffic; Phase 1 adds incidents + equipment
 
-Any decision to expand scope toward the full ERP vision must be an explicit, dated decision recorded in Section 7 (Decision Log).
+The old V2–V17 handover document remains archival only. The Master Plan is the active build spec.
 
 ## 3. Non-negotiable engineering standards
 
@@ -43,7 +44,7 @@ These apply to every PR/commit from this point forward. A feature that violates 
 
 - No secret, credential, or seed password may be introduced with a real-looking default in committed source. Dev fallbacks are allowed only behind `NODE_ENV !== 'production'` checks, following the existing pattern in `middleware/auth.js`.
 - Every new route that touches non-public data must call `requireAuth`, and if it's role-scoped, `requireRoot` or `requirePage`. No route ships with authorization "to be added later."
-- Every POST/PUT route must validate input shape and types, not just presence.
+- Every POST/PUT route must validate input shape and types (zod), not just presence.
 - No `origin: true` wildcard CORS in any config destined for a non-local environment.
 
 ### Data integrity
@@ -55,7 +56,7 @@ These apply to every PR/commit from this point forward. A feature that violates 
 
 - No feature is "Done" without: the route/component existing, being reachable from the UI (or documented as API-only), and matching its own claimed behavior when read.
 - `docs/ROADMAP.md` must be updated in the same PR that completes the item.
-- Tests are currently at 0% — accepted debt. Once any test infrastructure is introduced, auth/RBAC middleware must be covered first.
+- Tests: Phase 1 requires unit tests on auth/RBAC middleware and login rate limiter before Phase 2.
 
 ## 4. Definition of "Done" per feature type
 
@@ -67,31 +68,17 @@ These apply to every PR/commit from this point forward. A feature that violates 
 | i18n string | Present in all three locale files (ar.js, en.js, fr.js) |
 | Data module | Persistence model, API route with validation, UI page, reflected in DATA_SOURCES.md as real vs. demo |
 
-## 5. Current roadmap (only source of "what's next")
+## 5. Current roadmap
 
-### Immediate (security/hygiene — do before new features)
+Short list lives in `docs/ROADMAP.md`. Full phase plan lives in `docs/ENNA_ERP_Master_Plan.md`.
 
-1. Add a validation layer (zod or equivalent) to replace ad hoc presence checks
-2. Add rate limiting to `/api/auth/login`
-3. Replace wildcard CORS with an explicit allowlist before any non-local deployment
-4. Force password change on first login for seeded accounts
+**Active work:** Phase 1 — Incidents, Equipment, Finance/HR decision, auth tests.
 
-### Near-term (extends what already works)
-
-5. Real incidents module, following the existing daily_logs pattern
-6. Equipment inventory table (foundation for future maintenance/KPI work)
-
-### Deferred until explicitly decided (Section 7 decision required first)
-
-7. PostgreSQL migration
-8. KPI engine / MTTR / MTBF
-9. Report generation / validation workflow
-10. Windows ANA Client
-11. Excel import (CSV import already exists — don't build until a real need is confirmed)
+**Deferred until prior phase gates pass:** PostgreSQL (Phase 2), expanded RBAC/maintenance/SSE (Phase 3), KPIs/reports (Phase 4), production hardening (Phase 5), Windows client (Phase 6).
 
 ## 6. Standing audit prompt
 
-You are auditing the repo github.com/TakNouar/DashEnna, branch main. Clone or fetch the current code — do not rely on memory of prior conversations or on the repo's own README/ROADMAP as ground truth; verify against actual source files. Apply the standards in DashEnna_Development_Charter.md (Sections 1–4) exactly. For every claim of progress, cite the specific file and what it actually contains. Categorize every feature as one of: Verified working / Present but untested / Stubbed / Claimed but absent / Not started. Do not round up completion percentages. Flag any commit whose message overstates what the diff contains. Compare current state only against Section 5 of the charter — ignore the old V2–V17 ERP handover document unless Section 7 has recorded an explicit decision to pursue it. Output a report in the format specified in Section 8.
+You are auditing the repo github.com/TakNouar/DashEnna, branch main. Clone or fetch the current code — do not rely on memory of prior conversations or on the repo's own README/ROADMAP as ground truth; verify against actual source files. Apply the standards in DashEnna_Development_Charter.md (Sections 1–4) exactly. For every claim of progress, cite the specific file and what it actually contains. Categorize every feature as one of: Verified working / Present but untested / Stubbed / Claimed but absent / Not started. Do not round up completion percentages. Flag any commit whose message overstates what the diff contains. Compare current state against `docs/ROADMAP.md` and the active phase acceptance criteria in `docs/ENNA_ERP_Master_Plan.md`. Output a report in the format specified in Section 8.
 
 ## 7. Decision log
 
@@ -99,6 +86,7 @@ You are auditing the repo github.com/TakNouar/DashEnna, branch main. Clone or fe
 
 - **2026-08-13** — Charter established. Confirmed project scope is "internal dashboard MVP," not full ERP. V2–V17 handover doc downgraded to aspirational appendix, not active roadmap.
 - **2026-08-13** — Charter committed to `docs/DashEnna_Development_Charter.md` on main.
+- **2026-08-13** — **ERP path authorized.** `docs/ENNA_ERP_Master_Plan.md` v1.0 adopted as the active build plan (baselined at commit 96ce06d). Phase 0 (MVP + security hygiene) is complete. Next executable work is **Phase 1** (incidents + equipment + tests + Finance/HR decision). PostgreSQL and later phases remain gated per Master Plan Section 3. Old V2–V17 remains archival only.
 
 ## 8. Required report format
 
@@ -106,8 +94,8 @@ Every audit report must contain, in this order:
 
 1. Commit reference — exact commit hash scanned and date
 2. Delta since last report — what changed, file by file, since the previous audit
-3. Section 5 roadmap status — each numbered item with evidence
+3. Active phase status — each acceptance criterion with evidence
 4. New violations of Section 3 standards
-5. Updated completion percentages
+5. Updated completion percentages (by phase / category)
 6. Recommended next 3 actions
 7. Nothing else
