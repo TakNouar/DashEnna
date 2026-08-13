@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 
+const PAGE_OPTIONS = [
+  { id: 'overview', label: "Vue d'ensemble" },
+  { id: 'traffic', label: 'Trafic' },
+  { id: 'cns', label: 'CNS' },
+  { id: 'finance', label: 'Finances' },
+  { id: 'hr', label: 'RH' },
+  { id: 'map_dsa', label: 'Carte DSA' },
+  { id: 'daily_log', label: 'Rapport quotidien' },
+];
+
 export default function Accounts({ user, onChange }) {
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ username: '', password: '', role: 'dsa', dsa_region: '' });
@@ -18,6 +28,27 @@ export default function Accounts({ user, onChange }) {
   };
 
   useEffect(() => { load(); }, []);
+
+  const savePermissions = async (id, pages) => {
+    setMsg(''); setErr('');
+    try {
+      await api(`/users/${id}/permissions`, {
+        method: 'PUT',
+        body: JSON.stringify({ permissions: { pages } }),
+      });
+      setMsg('Permissions mises a jour');
+      load();
+    } catch (ex) {
+      setErr(ex.message);
+    }
+  };
+
+  const togglePage = (u, pageId) => {
+    const current = new Set(u.permissions?.pages || []);
+    if (current.has(pageId)) current.delete(pageId);
+    else current.add(pageId);
+    savePermissions(u.id, [...current]);
+  };
 
   const create = async (e) => {
     e.preventDefault();
@@ -48,7 +79,7 @@ export default function Accounts({ user, onChange }) {
     setMsg(''); setErr('');
     try {
       await api('/auth/change-password', { method: 'POST', body: JSON.stringify(pwd) });
-      setMsg('Mot de passe mis à jour');
+      setMsg('Mot de passe mis a jour');
       setPwd({ oldPassword: '', newPassword: '' });
     } catch (ex) {
       setErr(ex.message);
@@ -58,8 +89,7 @@ export default function Accounts({ user, onChange }) {
   return (
     <div className="panel">
       <h3>Gestionnaire des Comptes</h3>
-      <div className="sub">Auth serveur (bcrypt + JWT) — plus de Base64 côté client</div>
-
+      <div className="sub">Auth serveur + permissions de pages par compte</div>
       {msg && <p style={{ color: 'var(--green)', marginBottom: 10 }}>{msg}</p>}
       {err && <p style={{ color: 'var(--red)', marginBottom: 10 }}>{err}</p>}
 
@@ -112,7 +142,7 @@ export default function Accounts({ user, onChange }) {
         <h4>Comptes actifs</h4>
         <table className="status-table">
           <thead>
-            <tr><th>Identifiant</th><th>Rôle</th><th>DSA</th><th>Dernière modif. MDP</th><th /></tr>
+            <tr><th>Identifiant</th><th>Rôle</th><th>DSA</th><th>Pages</th><th>MDP</th><th /></tr>
           </thead>
           <tbody>
             {users.map((u) => (
@@ -120,6 +150,32 @@ export default function Accounts({ user, onChange }) {
                 <td>{u.username}</td>
                 <td>{u.role}</td>
                 <td>{u.dsa_region || '—'}</td>
+                <td style={{ maxWidth: 280 }}>
+                  {u.role === 'root' ? (
+                    <span style={{ color: 'var(--cyan)', fontSize: '0.75rem' }}>toutes</span>
+                  ) : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {PAGE_OPTIONS.map((p) => {
+                        const on = (u.permissions?.pages || []).includes(p.id);
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => togglePage(u, p.id)}
+                            style={{
+                              fontSize: '0.65rem', padding: '2px 6px', borderRadius: 4,
+                              border: '1px solid var(--border)',
+                              background: on ? 'rgba(79,224,232,0.2)' : 'transparent',
+                              color: on ? 'var(--cyan)' : 'var(--muted)',
+                            }}
+                          >
+                            {p.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </td>
                 <td>{u.last_pwd_change || '—'}</td>
                 <td>
                   {u.username !== 'root' && (

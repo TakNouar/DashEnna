@@ -23,7 +23,7 @@ router.get('/', requireAuth, requireRoot, (req, res) => {
 });
 
 router.post('/', requireAuth, requireRoot, (req, res) => {
-  const { username, password, role, dsa_region } = req.body || {};
+  const { username, password, role, dsa_region, permissions } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ error: 'Identifiant et mot de passe requis' });
   }
@@ -38,7 +38,7 @@ router.post('/', requireAuth, requireRoot, (req, res) => {
     role: role || 'dsa',
     dsa_region: dsa_region || null,
     last_pwd_change: new Date().toISOString().slice(0, 10),
-    permissions: null,
+    permissions: permissions || { pages: ['overview', 'cns', 'map_dsa', 'daily_log'] },
     created_at: new Date().toISOString().slice(0, 10),
   };
   db.users.push(user);
