@@ -1,15 +1,30 @@
+const path = require('path');
+const fs = require('fs');
+
+const envPath = path.join(__dirname, '../../.env');
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (!m || process.env[m[1]] !== undefined) continue;
+    let v = m[2];
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+      v = v.slice(1, -1);
+    }
+    process.env[m[1]] = v;
+  }
+}
+
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { load } = require('./db/store');
 
 const authRoutes = require('./routes/auth');
 const airportRoutes = require('./routes/airports');
 const logRoutes = require('./routes/logs');
 const userRoutes = require('./routes/users');
+const trafficRoutes = require('./routes/traffic');
 
 const PORT = process.env.PORT || 4000;
-
 load();
 
 const app = express();
@@ -20,8 +35,8 @@ app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
     service: 'DashEnna API',
-    version: '2.0.0',
-    phase: '0+1 React/Express migration',
+    version: '2.1.0',
+    phase: '2 — live stats + RBAC + traffic import',
   });
 });
 
@@ -29,6 +44,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/airports', airportRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/traffic', trafficRoutes);
 
 const clientDist = path.join(__dirname, '../../frontend/dist');
 app.use(express.static(clientDist));

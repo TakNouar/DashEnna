@@ -1,5 +1,5 @@
 const express = require('express');
-const { getDb, save } = require('../db/store');
+const { getDb, save, computeCnsStats } = require('../db/store');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -13,6 +13,11 @@ router.get('/', requireAuth, (req, res) => {
   res.json(rows.slice(0, 200));
 });
 
+router.get('/cns-stats', requireAuth, (req, res) => {
+  const db = getDb();
+  res.json(computeCnsStats(db.daily_logs));
+});
+
 router.post('/', requireAuth, (req, res) => {
   const { date, time, site, equip, status, start_time, end_time, why } = req.body || {};
   if (!date || !time || !site || !equip || !status) {
@@ -21,11 +26,7 @@ router.post('/', requireAuth, (req, res) => {
   const db = getDb();
   const row = {
     id: db.nextLogId++,
-    date,
-    time,
-    site,
-    equip,
-    status,
+    date, time, site, equip, status,
     start_time: start_time || null,
     end_time: end_time || null,
     why: why || '',
