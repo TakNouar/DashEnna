@@ -35,8 +35,8 @@ app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
     service: 'DashEnna API',
-    version: '2.1.0',
-    phase: '2 — live stats + RBAC + traffic import',
+    version: '2.2.0',
+    phase: '2.2 — login fix + API RBAC',
   });
 });
 

@@ -1,10 +1,17 @@
 const express = require('express');
 const { getDb, save, computeCnsStats } = require('../db/store');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePage } = require('../middleware/auth');
+
+function requireLogsRead(req, res, next) {
+  if (req.user?.role === 'root') return next();
+  const pages = req.user?.permissions?.pages || [];
+  if (!pages.length || pages.includes('daily_log') || pages.includes('cns') || pages.includes('overview')) return next();
+  return res.status(403).json({ error: 'Accès refusé aux logs' });
+}
 
 const router = express.Router();
 
-router.get('/', requireAuth, (req, res) => {
+router.get('/', requireAuth, requireLogsRead, (req, res) => {
   const db = getDb();
   const rows = [...db.daily_logs].sort((a, b) => {
     const d = b.date.localeCompare(a.date);
@@ -13,12 +20,12 @@ router.get('/', requireAuth, (req, res) => {
   res.json(rows.slice(0, 200));
 });
 
-router.get('/cns-stats', requireAuth, (req, res) => {
+router.get('/cns-stats', requireAuth, requireLogsRead, (req, res) => {
   const db = getDb();
   res.json(computeCnsStats(db.daily_logs));
 });
 
-router.post('/', requireAuth, (req, res) => {
+router.post('/', requireAuth, requirePage('daily_log'), (req, res) => {
   const { date, time, site, equip, status, start_time, end_time, why } = req.body || {};
   if (!date || !time || !site || !equip || !status) {
     return res.status(400).json({ error: 'Champs obligatoires manquants' });
