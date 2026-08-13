@@ -222,3 +222,48 @@ footer {
 .hb-val { width: 40px; text-align: right; font-family: var(--mono); font-size: 0.78rem; }
 
 .empty { color: var(--muted); font-size: 0.85rem; padding: 20px; text-align: center; }
+
+/* Language switcher */
+.lang-switch {
+  display: inline-flex;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+  background: rgba(0,0,0,0.2);
+}
+.lang-switch button {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.lang-switch button.active {
+  background: rgba(79, 224, 232, 0.25);
+  color: var(--cyan);
+}
+.lang-switch button:hover {
+  color: var(--text);
+}
+
+/* Arabic RTL tweaks */
+html[dir="rtl"] .topbar,
+html[dir="rtl"] .tabs,
+html[dir="rtl"] .page,
+html[dir="rtl"] footer {
+  direction: rtl;
+}
+html[dir="rtl"] .brand {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .top-meta {
+  flex-direction: row-reverse;
+}
+html[dir="rtl"] .kpi .l,
+html[dir="rtl"] .sub {
+  text-align: right;
+}
