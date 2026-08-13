@@ -40,14 +40,15 @@ function seedLogs() {
 function defaultDb() {
   const hash = (pwd) => bcrypt.hashSync(pwd, 10);
   const dsaPerms = { pages: ['overview', 'cns', 'map_dsa', 'daily_log'] };
+  // Seeded accounts must change password on first login
   return {
     users: [
-      { id: 1, username: 'root', password_hash: hash('admin123'), role: 'root', dsa_region: null, last_pwd_change: '2026-01-01', permissions: { pages: ALL_PAGES }, created_at: '2026-01-01' },
-      { id: 2, username: 'DSA_Alger', password_hash: hash('alger123'), role: 'dsa', dsa_region: 'DSA Alger (Centre)', last_pwd_change: '2026-08-01', permissions: dsaPerms, created_at: '2026-08-01' },
-      { id: 3, username: 'DSA_Oran', password_hash: hash('oran123'), role: 'dsa', dsa_region: 'DSA Oran (Ouest)', last_pwd_change: '2026-08-01', permissions: dsaPerms, created_at: '2026-08-01' },
-      { id: 4, username: 'DSA_Constantine', password_hash: hash('const123'), role: 'dsa', dsa_region: 'DSA Constantine (Est)', last_pwd_change: '2026-08-01', permissions: dsaPerms, created_at: '2026-08-01' },
-      { id: 5, username: 'DSA_Sud', password_hash: hash('sud123'), role: 'dsa', dsa_region: 'DSA Sud (Hassi-Messaoud)', last_pwd_change: '2026-08-01', permissions: dsaPerms, created_at: '2026-08-01' },
-      { id: 6, username: 'DSA_Annaba', password_hash: hash('annaba123'), role: 'dsa', dsa_region: 'DSA Annaba (Est)', last_pwd_change: '2026-08-01', permissions: dsaPerms, created_at: '2026-08-01' },
+      { id: 1, username: 'root', password_hash: hash('admin123'), role: 'root', dsa_region: null, last_pwd_change: '2026-01-01', must_change_password: true, permissions: { pages: ALL_PAGES }, created_at: '2026-01-01' },
+      { id: 2, username: 'DSA_Alger', password_hash: hash('alger123'), role: 'dsa', dsa_region: 'DSA Alger (Centre)', last_pwd_change: '2026-08-01', must_change_password: true, permissions: dsaPerms, created_at: '2026-08-01' },
+      { id: 3, username: 'DSA_Oran', password_hash: hash('oran123'), role: 'dsa', dsa_region: 'DSA Oran (Ouest)', last_pwd_change: '2026-08-01', must_change_password: true, permissions: dsaPerms, created_at: '2026-08-01' },
+      { id: 4, username: 'DSA_Constantine', password_hash: hash('const123'), role: 'dsa', dsa_region: 'DSA Constantine (Est)', last_pwd_change: '2026-08-01', must_change_password: true, permissions: dsaPerms, created_at: '2026-08-01' },
+      { id: 5, username: 'DSA_Sud', password_hash: hash('sud123'), role: 'dsa', dsa_region: 'DSA Sud (Hassi-Messaoud)', last_pwd_change: '2026-08-01', must_change_password: true, permissions: dsaPerms, created_at: '2026-08-01' },
+      { id: 6, username: 'DSA_Annaba', password_hash: hash('annaba123'), role: 'dsa', dsa_region: 'DSA Annaba (Est)', last_pwd_change: '2026-08-01', must_change_password: true, permissions: dsaPerms, created_at: '2026-08-01' },
     ],
     airports: AIRPORTS,
     daily_logs: seedLogs(),
@@ -83,6 +84,11 @@ function load() {
         touched = true;
       } else if (u.role === 'dsa' && (!u.permissions || !u.permissions.pages)) {
         u.permissions = { pages: ['overview', 'cns', 'map_dsa', 'daily_log'] };
+        touched = true;
+      }
+      // Migrate: missing flag → true so seeded accounts are forced after this upgrade
+      if (typeof u.must_change_password === 'undefined') {
+        u.must_change_password = true;
         touched = true;
       }
     }
