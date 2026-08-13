@@ -13,6 +13,8 @@ if (!isProd && !process.env.JWT_SECRET) {
   console.warn('[auth] Using default JWT_SECRET (dev only). Set JWT_SECRET in .env for production.');
 }
 
+const DEFAULT_DSA_PAGES = ['overview', 'cns', 'map_dsa', 'daily_log'];
+
 function signToken(user) {
   return jwt.sign(
     {
@@ -46,13 +48,29 @@ function requireRoot(req, res, next) {
   next();
 }
 
+function userPages(user) {
+  if (!user) return [];
+  if (user.role === 'root') return null;
+  const pages = user.permissions?.pages;
+  if (Array.isArray(pages) && pages.length) return pages;
+  return DEFAULT_DSA_PAGES;
+}
+
 function requirePage(pageId) {
   return (req, res, next) => {
     if (req.user?.role === 'root') return next();
-    const pages = req.user?.permissions?.pages;
-    if (Array.isArray(pages) && pages.includes(pageId)) return next();
+    const pages = userPages(req.user);
+    if (pages.includes(pageId)) return next();
     return res.status(403).json({ error: `Accès refusé à la page: ${pageId}` });
   };
 }
 
-module.exports = { signToken, requireAuth, requireRoot, requirePage, JWT_SECRET };
+module.exports = {
+  signToken,
+  requireAuth,
+  requireRoot,
+  requirePage,
+  userPages,
+  JWT_SECRET,
+  DEFAULT_DSA_PAGES,
+};

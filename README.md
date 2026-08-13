@@ -1,52 +1,59 @@
-# DashEnna v2
+# DashEnna v2.2
 
-Executive dashboard for **ENNA** (Etablissement National de la Navigation Aerienne).
+Executive dashboard for **ENNA** (Établissement National de la Navigation Aérienne).
 
 **Stack:** React (Vite) + Node/Express + JSON file store + bcrypt/JWT
-
-## Structure
-
-```
-DashEnna/
-├── backend/                 # Express API
-│   └── src/
-│       ├── data/            # 36 official aerodromes
-│       ├── db/store.js      # JSON persistence
-│       ├── middleware/      # JWT auth
-│       └── routes/          # auth, airports, logs, users
-├── frontend/                # React + Vite
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       ├── api.js
-│       └── styles/
-└── docs/
-    ├── DATA_SOURCES.md
-    └── ROADMAP.md
-```
 
 ## Quick start
 
 ```bash
 # Backend
 cd backend && npm install && npm run dev
-# -> http://localhost:4000
+# → http://localhost:4000
 
 # Frontend (other terminal)
 cd frontend && npm install && npm run dev
-# -> http://localhost:5173  (proxies /api -> :4000)
+# → http://localhost:5173  (proxies /api → :4000)
 ```
 
-**Login:** `root` / `admin123`
+**Login:** `root` / `admin123`  
+DSA demo: `DSA_Alger` / `alger123`
 
-## What is real
+### Reset seed data (PowerShell)
 
-- 36 aerodromes (12 INTL + 24 NTL), ICAO codes from AIS Algeria AIP
-- Public traffic 2025: 253 340 movements, 276 899 overflights (enna.dz)
-- Server-side auth (bcrypt + JWT)
+```powershell
+Remove-Item -Force -ErrorAction SilentlyContinue backend\data\db.json
+```
 
-Finance, live CNS %, and demo incident rows are **illustrative** — see `docs/DATA_SOURCES.md`.
+### Reset seed data (bash)
 
-## Security
+```bash
+rm -f backend/data/db.json
+```
 
-Change `JWT_SECRET` and default passwords before any real deployment.
+## What updates live
+
+| Data | Source |
+|------|--------|
+| Airport counts / map | API `/airports` |
+| CNS % gauges | Derived from daily logs |
+| Traffic line chart | DB `traffic_series` (CSV import by root) |
+| Daily log table | API `/logs` — refreshes after submit |
+
+Finance & HR charts remain **illustrative** until internal ENNA feeds exist.
+
+## Production
+
+1. Copy `backend/.env.example` → project root `.env`
+2. Set a long random `JWT_SECRET`
+3. Set `NODE_ENV=production`
+4. Change all default passwords
+5. Prefer HTTPS reverse proxy (nginx / IIS)
+
+See `docs/PRODUCTION.md`.
+
+## Docs
+
+- `docs/DATA_SOURCES.md` — legitimacy of figures
+- `docs/ROADMAP.md` — phases done / next
+- `docs/PRODUCTION.md` — deploy checklist

@@ -3,28 +3,30 @@
 ## Done — Phase 0 + 1
 
 - [x] Official 36 aerodromes + correct ICAO codes
-- [x] React frontend (Vite)
-- [x] Node/Express + JSON file store
+- [x] React frontend (Vite) + Express JSON backend
 - [x] bcrypt + JWT auth
-- [x] Server-side account management
-- [x] Daily logs API
-- [x] Leaflet map with all aerodromes
-- [x] Legacy plain HTML/JS/CSS removed
+- [x] Daily logs, map, accounts
+- [x] Legacy HTML removed
 
-## Done — Phase 2 (current)
+## Done — Phase 2
 
-- [x] CNS availability derived from daily logs (`GET /api/logs/cns-stats`)
-- [x] Overview + CNS pages consume live CNS stats
-- [x] Monthly traffic series in DB (`GET /api/traffic`)
-- [x] CSV import for traffic series (root) (`POST /api/traffic/import`)
-- [x] Overview traffic chart uses DB series
-- [x] Env-based JWT (`JWT_SECRET`, fails in production if missing)
-- [x] Role-based page permissions (stored on user, enforced in UI)
-- [x] Accounts UI to toggle page access per DSA user
+- [x] CNS from daily logs (`GET /api/logs/cns-stats`)
+- [x] Traffic series + CSV import (`GET/POST /api/traffic`)
+- [x] Overview charts wired to live series / CNS
+- [x] Env JWT (`JWT_SECRET`, required in production)
+- [x] RBAC page permissions (UI + API)
+- [x] Login/logout without full page refresh (hooks order fixed)
+
+## Done — Phase 2.2
+
+- [x] Instant session switch on login/logout
+- [x] API route page checks (logs write, airports, cns-stats)
+- [x] Refresh data after daily log submit (`onChange` → refresh)
 
 ## Next
 
-- [ ] Optional Postgres for multi-instance deploy
-- [ ] i18n (FR / AR / EN)
-- [ ] Connect finance/HR when official internal feeds exist
-- [ ] Real-time push (SSE/WebSocket) instead of polling
+- [ ] Production hardening: rotate default passwords, deploy checklist
+- [ ] i18n FR / AR / EN
+- [ ] Optional Postgres
+- [ ] Real-time push (SSE) instead of 2 min poll
+- [ ] Finance / HR only with official internal feeds

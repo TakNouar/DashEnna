@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { login as apiLogin, logout as apiLogout, getStoredUser, api } from './api';
 import Login from './components/Login';
 import Topbar from './components/Topbar';
@@ -14,11 +14,11 @@ import Hr from './pages/Hr';
 
 const TABS = [
   { id: 'overview', label: "Vue d'ensemble" },
-  { id: 'traffic', label: 'Trafic & Securite' },
-  { id: 'cns', label: 'CNS & Disponibilite' },
+  { id: 'traffic', label: 'Trafic & Sécurité' },
+  { id: 'cns', label: 'CNS & Disponibilité' },
   { id: 'finance', label: 'Finances' },
   { id: 'hr', label: 'RH & Effectifs' },
-  { id: 'map_dsa', label: 'Cartes DSA & Aerodromes' },
+  { id: 'map_dsa', label: 'Cartes DSA & Aérodromes' },
   { id: 'daily_log', label: 'Rapport Quotidien DSA' },
   { id: 'accounts', label: 'Gestion des Comptes', rootOnly: true },
 ];
@@ -35,7 +35,7 @@ function canAccess(user, pageId) {
 }
 
 export default function App() {
-  const [user, setUser] = useState(getStoredUser());
+  const [user, setUser] = useState(() => getStoredUser());
   const [tab, setTab] = useState('overview');
   const [airports, setAirports] = useState([]);
   const [stats, setStats] = useState(null);
@@ -45,8 +45,20 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const clearSession = useCallback(() => {
+    apiLogout();
+    setUser(null);
+    setAirports([]);
+    setStats(null);
+    setLogs([]);
+    setTraffic(null);
+    setCnsStats(null);
+    setError('');
+    setTab('overview');
+  }, []);
+
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!getStoredUser() && !user) return;
     setLoading(true);
     try {
       const [apts, st, lg, tr, cns] = await Promise.all([
@@ -64,50 +76,49 @@ export default function App() {
       setError('');
     } catch (e) {
       if (e.status === 401) {
-        apiLogout();
-        setUser(null);
+        clearSession();
       } else {
         setError(e.message);
       }
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, clearSession]);
 
   useEffect(() => {
-    refresh();
     if (!user) return undefined;
+    refresh();
     const id = setInterval(refresh, 120000);
     return () => clearInterval(id);
   }, [user, refresh]);
+
+  const visibleTabs = useMemo(
+    () => TABS.filter((t) => canAccess(user, t.id)),
+    [user]
+  );
+
+  useEffect(() => {
+    if (!user) return;
+    if (!canAccess(user, tab) && visibleTabs.length) {
+      setTab(visibleTabs[0].id);
+    }
+  }, [user, tab, visibleTabs]);
 
   const handleLogin = async (username, password) => {
     const data = await apiLogin(username, password);
     setUser(data.user);
     const first = TABS.find((t) => canAccess(data.user, t.id));
     setTab(first?.id || 'overview');
+    setError('');
   };
 
   const handleLogout = () => {
-    apiLogout();
-    setUser(null);
-    setAirports([]);
-    setLogs([]);
-    setTraffic(null);
-    setCnsStats(null);
+    clearSession();
   };
 
   if (!user) {
     return <Login onLogin={handleLogin} />;
   }
-
-  const visibleTabs = TABS.filter((t) => canAccess(user, t.id));
-
-  useEffect(() => {
-    if (user && !canAccess(user, tab) && visibleTabs.length) {
-      setTab(visibleTabs[0].id);
-    }
-  }, [user, tab, visibleTabs.length]);
 
   return (
     <div className="app">
@@ -119,23 +130,31 @@ export default function App() {
         </div>
       )}
       <main className="page">
-        {tab === 'overview' && <Overview stats={stats} traffic={traffic} cnsStats={cnsStats} />}
-        {tab === 'traffic' && <Traffic traffic={traffic} user={user} onChange={refresh} />}
-        {tab === 'cns' && <Cns logs={logs} cnsStats={cnsStats} />}
-        {tab === 'finance' && <Finance />}
-        {tab === 'hr' && <Hr />}
-        {tab === 'map_dsa' && <MapPage airports={airports} stats={stats} />}
-        {tab === 'daily_log' && (
+        {tab === 'overview' && canAccess(user, 'overview') && (
+          <Overview stats={stats} traffic={traffic} cnsStats={cnsStats} />
+        )}
+        {tab === 'traffic' && canAccess(user, 'traffic') && (
+          <Traffic traffic={traffic} user={user} onChange={refresh} />
+        )}
+        {tab === 'cns' && canAccess(user, 'cns') && (
+          <Cns logs={logs} cnsStats={cnsStats} />
+        )}
+        {tab === 'finance' && canAccess(user, 'finance') && <Finance />}
+        {tab === 'hr' && canAccess(user, 'hr') && <Hr />}
+        {tab === 'map_dsa' && canAccess(user, 'map_dsa') && (
+          <MapPage airports={airports} stats={stats} />
+        )}
+        {tab === 'daily_log' && canAccess(user, 'daily_log') && (
           <DailyLogs logs={logs} airports={airports} user={user} onChange={refresh} />
         )}
-        {tab === 'accounts' && user.role === 'root' && (
+        {tab === 'accounts' && canAccess(user, 'accounts') && (
           <Accounts user={user} onChange={refresh} />
         )}
       </main>
       <footer>
-        <span>ENNA — Tableau de bord executif · v2.1 · React + Express</span>
+        <span>ENNA — Tableau de bord exécutif · v2.2</span>
         <span>
-          {stats ? `${stats.total} aerodromes · ${stats.intl} internationaux · ${stats.ntl} nationaux` : '...'}
+          {stats ? `${stats.total} aérodromes · ${stats.intl} internationaux · ${stats.ntl} nationaux` : '…'}
           {' · '}CNS: {cnsStats?.overall != null ? `${cnsStats.overall}%` : '—'}
         </span>
       </footer>
